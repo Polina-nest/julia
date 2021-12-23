@@ -1,20 +1,32 @@
-function mark_all(r::Robot)
-    nun_vert = get_num_steps_movements!(r,Sud)
-    nun_hor = get_num_steps_movements!(r,West)
-    #УТВ: Робот - в юго-западном углу
 
-    side = Ost
-    mark_row!(r,side)
-    while isborder!(r,Nord)==false
-        side=inverse(side)
-        mark_row!(r,side)
+  
+function mark_angles(r)
+    num_steps=[]
+    while isborder(r,Sud)==false || isborder(r,West) # Робот - не в юго-западном углу
+        push!(num_steps, moves!(r, West)) # - добавляется в конец массива новый элемент
+        push!(num_steps, moves!(r, Sud))
     end
-    #УТВ: Робот - у северной границы, в одном из углов
-
-    movements!(r,Sud)
-    movements!(r,West)
-    #УТВ: Робот - в юго-западном углу
-
-    movemens!(r,Ost,num_hor)
-    movemens!(r,Nord,num_vert)
+    # УТВ: Робот - в юго-западном углу и в num_steps - закодирован пройденный путь
+    for side in (Nord,Ost,Sud,West)
+        moves!(r,side) # возвращаемый результат игнорируется
+        putmarker!(r)
+    end
+    # УТВ: Маркеры поставлены и Робот - в юго-западном углу
+    for (i,n) in enumerate(reverse!(num_steps)) # встроенная функция reverse! переворачивает массив задом на перед
+        side = isodd(i) ? Ost : Nord # odd - нечетный
+        moves!(r,side,n)
+    end
+    #УТВ: Робот - в исходном положении
 end
+# перемещает Робота в заданном направлении до упора и возвращает число сделанных шагов
+function moves!(r,side)
+    num_steps=0
+    while isborder(r,side)==false
+        move!(r,side)
+        num_steps+=1
+    end
+    return num_steps
+end
+# Перемещает Робота в заданном направлении на заданное число шагов
+moves!(r,side,num_steps) = for _ in 1:num_steps move!(r,side)
+ end
