@@ -1,18 +1,91 @@
-function mark_kross_x(r::Robot)
-    for side in ((Nord,Ost),(Sud,Ost),(Sud,West),(Nord,West))
-        putmarkers!(r,side)
-        move_by_markers!(r,inverse(side))
-    end
-    putmarker!(r)
+function main13!(r::Robot)
+      putmarker!(r)
+      upleft!(r)
+      upright!(r)
+      downleft!(r)
+      downright!(r)
 end
 
-putmarkers!(r::Robot,side::NTuple{2,HorizonSide}) = while isborder(r,side)==false move!(r,side) end
+function upleft!(r::Robot)
+      x, y = 0, 0
+      while isborder(r, West) == false && isborder(r, Nord) == false
+            move!(r, West)
+            x += 1
 
-isborder(r::Robot,side::NTuple{2,HorizonSide}) = (isborder(r,side[1] || isborder(r,side[2]))
+            move!(r, Nord)
+            y += 1
 
-HorizonSideRobots.move!(r::Robot, side::NTuple{2,HorizonSide}) = for s in side move!(r,s) end
+            putmarker!(r)
+      end
 
+      while x > 0 && y > 0
+            move!(r, Ost)
+            x -= 1
 
-move_by_markers!(r::Robot,side::NTuple{2,HorizonSide}) = while ismarker(r) move!(r,side) end
+            move!(r, Sud)
+            y -= 1
+      end
+end
 
-inverse(side::NTuple{2,HorizonSide}) = (inverse(side[1]),inverse(side[2]))
+function upright!(r::Robot)
+      x, y = 0, 0
+      while isborder(r, Ost) == false && isborder(r, Nord) == false
+            move!(r, Ost)
+            x += 1
+
+            move!(r, Nord)
+            y += 1
+
+            putmarker!(r)
+      end
+
+      while x > 0 && y > 0
+            move!(r, West)
+            x -= 1
+
+            move!(r, Sud)
+            y -= 1
+      end
+end
+
+function downleft!(r::Robot)
+      x, y = 0, 0
+      while isborder(r, West) == false && isborder(r, Sud) == false
+            move!(r, West)
+            x += 1
+
+            move!(r, Sud)
+            y += 1
+
+            putmarker!(r)
+      end
+
+      while x > 0 && y > 0
+            move!(r, Ost)
+            x -= 1
+
+            move!(r, Nord)
+            y -= 1
+      end
+end
+
+function downright!(r::Robot)
+      x, y = 0, 0
+      while isborder(r, Ost) == false && isborder(r, Sud) == false
+            move!(r, Ost)
+            x += 1
+
+            move!(r, Sud)
+            y += 1
+
+            putmarker!(r)
+      end
+
+      while x > 0 && y > 0
+            move!(r, West)
+            x -= 1
+
+            move!(r, Nord)
+            y -= 1
+      end
+end
