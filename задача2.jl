@@ -1,81 +1,37 @@
+#Робот - в произвольной клетке поля (без внутренних перегородок и маркеров).Итог:Робот - в исходном положении, и все клетки по периметру внешней рамки промакированы
+function mark_frame_perimetr!(r::Robot)#функция которая маркирует весь перемитер(используется метод программирования сверху-вниз)
+    num_vert = moves!(r, Sud) #идем вниз и передаем количество шагов в переменную num_vert
+    num_hor = moves!(r, West)#идем налево и передаем количество шагов в переменную num_hor
+    #УТВ: Робот - в Юго-Западном углу
 
-  
-function mark_treugol!(r::Robot)
-    num_vert = moves_end!(r, Sud)
-    num_hor = moves_end!(r, West)
-    h = 0
-    i = (moves_end!(r,Nord))
-    moves!(r,Sud)
-    j = (moves_end!(r,Ost) - 1)
-    moves!(r,West)
-    for k in 0:i
-        if k == 0
-            putmarkers!(r,Ost)
-            h+=1
-        elseif k % 2 == 1
-            putmarkers1!(r,West)
-            h+=1
-        elseif k % 2 == 0
-            putmarkers!(r,Ost,(j-k))
-            h+=1
-        end
-    end
-    moves!(r, Sud)
-    moves!(r, West)
-    moves_end!(r, Nord, num_vert)
-    moves_end!(r, Ost, num_hor)    
+    for side in [Nord, Ost, Sud, West]#проходимся по каждой стороне
+        putmarkers!(r, side) #раставляем маркеры по стороне
+    end 
+    #УТВ: По всему периметру стоят маркеры
+
+    moves!(r, Nord, num_vert)#двигаемся наверх на количетсво num_vert
+    moves!(r, Ost, num_hor)#двигаемся направо на количество num_hor
+    #УТВ: Робот - в исходном положении
 end
-function moves_end!(r::Robot,side::HorizonSide)
-    num_steps=0
-    while isborder(r,side)==false
-        move!(r,side)
-        num_steps+=1
+
+function moves!(r::Robot,side::HorizonSide)#передвигаем робота по стороне horizonside и возвращаем количество шагов  num_step
+    num_steps=0#обнуляем счетчик шагов 
+    while isborder(r,side)==false#пока не граница
+        move!(r,side)#двигаем робота
+        num_steps+=1#обновляем счётчик
     end
-    return num_steps
+    return num_steps#возвращаем общее количество шагов
 end
-function moves!(r::Robot,side::HorizonSide)
-    while isborder(r,side)==false
-        move!(r,side)
+
+function moves!(r::Robot,side::HorizonSide,num_steps::Int)#передвигаем робота по horizonside на количество шагов (num_steps)
+    for _ in 1:num_steps # символ "_" заменяет фактически не используемую переменную и мы проходимся по шагам
+        move!(r,side)#двигаем робота
     end
 end
-inverse(side::HorizonSide)=HorizonSide(mod(Int(side)+2,4))
-function putmarkers!(r::Robot,side::HorizonSide,i::Int)
-    for _ in 0:(i)
-        putmarker!(r)
-        move!(r,side)
-    end
-    putmarker!(r)
-    move!(r,side)
-    if (isborder(r,Nord)==false)
-    move!(r,Nord)
-    move!(r,West)
-    end
-end
-function putmarkers!(r::Robot,side::HorizonSide)
-    while isborder(r,side) == false
-        putmarker!(r)
-        move!(r,side)
-    end
-    putmarker!(r)
-    if isborder(r,Nord)==false
-        move!(r,Nord)
-    end
-end
-function putmarkers1!(r::Robot,side::HorizonSide)
-    if isborder(r,side)==false
-        move!(r,side)
-    end
-    while isborder(r,side)==false
-    putmarker!(r)
-    move!(r,side)
-    end
-    putmarker!(r)
-    if isborder(r,Nord)==false
-        move!(r,Nord)
-    end
-end
-function moves_end!(r::Robot,side::HorizonSide,num_steps::Int)
-    for _ in 1:num_steps 
-        move!(r,side)
+
+function putmarkers!(r::Robot, side::HorizonSide)#ставим маркеры на стороне horizonSide
+    while isborder(r,side)==false #пока не граница 
+        move!(r,side) #двигаем робота
+        putmarker!(r) #ставим маркер
     end
 end
