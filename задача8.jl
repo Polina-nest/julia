@@ -1,12 +1,24 @@
-function find_passage(r)
-    n=0; side=Ost
-    while isborder(r,Nord)==true # прохода сверху нет
-        n+=1
-        move!(r,side,n)
-        side=inverse(side)
+function moveFull!(r::Robot, side::HorizonSide, n)
+    while n > 0
+        move!(r, side)
+        n -= 1
     end
 end
 
-move!(r,side,num_steps)=for _ in 1:num_steps move!(r,side) end
+function main8!(r::Robot)
+    cnt = 0
 
-inverse(side::HorizonSide)=HorizonSide(mod(Int(side)+2,4))
+    while true
+        if isborder(r, Nord) == false
+            break
+        end
+
+        cnt += 1
+
+        if cnt % 2 == 1
+            moveFull!(r, West, cnt)
+        else
+            moveFull!(r, Ost, cnt)
+        end
+    end         
+end
