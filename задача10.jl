@@ -1,31 +1,43 @@
-function sum_temp(r::Robot)
-    sum = 0 
-    count = 0
-    side = Ost
-    while isborder(r,Nord) == false
-        s, c=moves!(r,side)
-        sum+=s
-        count+=c
-        side = inverse(side)
+function average_temperature(r::Robot)
+    temp_sum, marks_num = pass_field(r, 0, 0)
+
+    if marks_num == 0
+        return 0
+    else
+        return temp_sum / marks_num
     end
-    s, c=moves!(r,side)
-    sum+=s
-    count+=c
-    return (sum/count)
 end
-function moves!(r::Robot,side::HorizonSide)
-    sum = 0 
-    count = 0
-    while isborder(r,side) == false
-        if ismarker(r) == true
-            count+=1
-            sum+= temperature(r)
+
+function pass_vert(r::Robot, side::HorizonSide, temp_sum::Int, marks_num::Int)
+    while !isborder(r, side)
+        if ismarker(r)
+            marks_num += 1
+            temp_sum += temperature(r)
         end
+
         move!(r,side)
     end
-    if isborder(r,Nord) == false
-        move!(r,Nord)
+
+    if ismarker(r)
+        marks_num += 1
+        temp_sum += temperature(r)
     end
-    return sum, count
+
+    return temp_sum, marks_num
 end
-inverse(side::HorizonSide)=HorizonSide(mod(Int(side)+2,4))
+
+function pass_field(r::Robot, temp_sum::Int, marks_num::Int)
+    side = Nord
+
+    while !isborder(r, Ost)
+        temp_sum, marks_num = pass_vert(r, side, temp_sum, marks_num)
+
+        side = inverse(side)
+
+        move!(r, Ost)
+    end
+
+    return pass_vert(r, side, temp_sum, marks_num)
+end
+
+inverse(side::HorizonSide) = HorizonSide(mod(Int(side)+2, 4))
