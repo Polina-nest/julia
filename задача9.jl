@@ -1,43 +1,22 @@
-function moveSideN!(r::Robot, side::HorizonSide, n)
-    while n > 0
-        if ismarker(r) == true
-            break
+function find_marker(r)
+    num_steps_max=1
+    side=Nord
+    while ismarker(r)==false
+        for _ in 1:2
+            find_marker(r,side,num_steps_max)
+            side=next(side)
         end
-        move!(r, side)
-        n -= 1
+        num_steps_max+=1
     end
 end
 
-function main9!(r::Robot)
-    cnt = 0
-
-    while true
-        if ismarker(r) == true
-            break
+function find_marker(r,side,num_steps_max)
+    for _ in 1:num_steps_max
+        if ismarker(r)
+            return nothing
         end
-
-        cnt += 1
-
-        moveSideN!(r, Ost, cnt)
-        if ismarker(r) == true
-            break
-        end
-
-        moveSideN!(r, Sud, cnt)
-        if ismarker(r) == true
-            break
-        end
-
-        cnt += 1
-
-        moveSideN!(r, West, cnt)
-        if ismarker(r) == true
-            break
-        end
-
-        moveSideN!(r, Nord, cnt)
-        if ismarker(r) == true
-            break
-        end
-    end         
+        move!(r,side)
+    end
 end
+
+next(side::HorizonSide)=HorizonSide(mod(Int(side)+1,4))
