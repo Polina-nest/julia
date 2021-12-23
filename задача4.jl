@@ -1,46 +1,56 @@
 
-using HorizonSideRobots
-#=
-Модуль HorizonSideRobots экспортирует перечисление HorizonSide, содержащее символы Nord, Sud, Ost, West,  и определения следующих функций:
-    - moves!(::Robot, ::HorizonSide)
-    - moves!(::Robot, ::HorizonSide, ::Int)
-    - find_border!(::Robot, ::HorizonSide, ::HorizonSide)
-    - inverse(::HorizonSide)
-    - putmarkers!(::Robot, ::HorizonSide)
-    - putmarkers!(r, direction_of_movement, direction_to_border)
-=#
-function mark_innerrectangle_perimetr!(r::Robot)
-    num_steps=fill(0,3) # - вектор-столбец из 3-х нулей
-    for (i,side) in enumerate((Nord,Ost,Nord))
-        num_steps[i]=moves!(r,side)
-    end
-    #УТВ: Робот - в Юго-западном углу внешней рамки
+  
+#ДАНО: Робот - Робот - в произвольной клетке ограниченного прямоугольного поля. РЕЗУЛЬТАТ: Робот - в исходном положении, и клетки поля промакированы так: нижний ряд - полностью, следующий - весь, за исключением одной последней клетки на Востоке, следующий - за исключением двух последних клеток на Востоке, и т.д.
 
-    side = find_border!(r,Ost,side)
-    #УТВ: Робот - у западной границы внутренней перегородки
 
-    mark_innerrectangle_perimetr!(r,side)
-    #УТВ: Робот - снова у западной границы внутренней прямоугольной перегородки
 
-    moves!(r,Sud)
-    moves!(r,West)
-    #УТВ: Робот - в Юго-западном улу внешней рамки
+function mark_rows!(r::Robot)#выделяем ряды
+    num_ost = moves!(r, Ost)#двигаемся на восток
+    num_vert = moves!(r, Sud)#двигаемся на юг
+    num_hor = moves!(r, West)#двигаемся на запад
+    #УТВ: Робот - в Юго-Западном углу
 
-    for (i,side) in enumerate((Sud,West,Sud))
-        moves!(r,side, num_steps[i])
-    end
+    putmarkers!(r, num_hor)#маркируем поле
+    #УТВ: Все ряды поля промаркированы в соответствующем порядке
+
+    moves!(r, Sud)#двигаемся на юг
+    moves!(r, West)#двигаемся на запад
+    moves!(r, Nord, num_vert)#двигаемся на север
+    moves!(r, Ost, num_hor-num_ost)#двигаемся на восток
     #УТВ: Робот - в исходном положении
 end
-function mark_innerrectangle_perimetr!(r::Robot, side::HorizonSide)
-    direction_of_movement, direction_to_border = get_directions(side)
-    for i ∈ 1:4   
-        putmarkers!(r, direction_of_movement[i], direction_to_border[i]) 
+
+function moves!(r::Robot,side::HorizonSide)#передвигаем робота до границы по направлнию side 
+    num_steps=0#обнуляем счетчик
+    while !isborder(r,side)#пока не граница
+        move!(r,side)#двигаем робота
+        num_steps+=1#обновляем счетчик
+    end
+    return num_steps#возвращаем количество шагов
+end
+
+function moves!(r::Robot,side::HorizonSide,num_steps::Int)# передвигаем робота по стороне side на num_steps
+    for _ in 1:num_steps#цикл от 1 ого до количества шагов
+        move!(r,side)#двигаем робота
     end
 end
-get_directions(side::HorizonSide) = 
-    if side == Nord  
-    # - обход будет по часовой стрелке      
-        return (Nord,Ost,Sud, West), (Ost,Sud,West,Nord)
-    else # - обход будет против часовой стрелки
-        return (Sud,Ost,Nord,West), (Ost,Nord,West,Sud) 
+
+function put_num_markers!(r::Robot,side::HorizonSide,num_marks::Int)#двигаем по side на num_marks
+    for _ in 1:num_marks#проходимся от 1 до num_marks
+        putmarker!(r)#ставим маркер
+        move!(r,side)#двигаем робота
     end
+    putmarker!(r)#ставим маркер
+end
+
+function putmarkers!(r::Robot, num_marks::Int)#красим поле
+    while !isborder(r,Nord)#пока не граница на севере
+        put_num_markers!(r, Ost, num_marks)#ставим маркеры на восток
+        
+        move!(r, Nord)#двигаем робота на север
+        moves!(r, West)#двигаем робота на запад
+        num_marks -= 1#обновляем счетчик
+    end
+
+    put_num_markers!(r, Ost, num_marks)#ставим маркеры на восток на num_marks
+end
