@@ -1,101 +1,46 @@
-function mark_all!(r::Robot)
-    num_vert,num_hor = ugol(r)
-    side = Ost
-    num_steps = moves!(r,Ost)
-    for _ in 1:num_steps
-        move!(r,West)
-    end
-    putmarkers!(r,side,num_steps)
-    while isborder(r,Nord)==false    
-        if isborder(r,side)==true
-            side = inverse(side)
-            putmarkers!(r,side,num_steps)
-        end
-    end  
-    putmarkers_last!(r,Ost)
-    moves!(r, West)
-    moves!(r, Sud)
-    moves!(r, Ost, num_hor)
-    moves1!(r, Nord, num_vert)
+
+
+function mark_field!(r::Robot)#заполняем поле
+    num_vert = moves!(r, Sud)#двигаемся на юг
+    num_hor = moves!(r, West)#двигаемся на запад
+    #УТВ: Робот - в Юго-Западном углу
+
+    putmarkers!(r, Nord)#ставим маркеры
+    #УТВ: Все клетки поля промаркированы
+
+    moves!(r, Sud)#перемешаемся на юг до границы
+    moves!(r, West)#перемещаемся на запад до границы
+    moves!(r, Nord, num_vert)#перемещаемся на север на количество num_vert
+    moves!(r, Ost, num_hor)#перемещаемся на восток на количество num_hor
+    #УТВ: Робот - в исходном положении
 end
-function moves!(r::Robot,side::HorizonSide)
-    num_steps=0
-    while isborder(r,side)==false
-        move!(r,side)
-        num_steps+=1
+
+function moves!(r::Robot,side::HorizonSide)#передвигаем робота до границы по направлнию side 
+    num_steps=0#обнуляем счетчик
+    while !isborder(r,side)#пока не граница
+        move!(r,side)#двигаем робота
+        num_steps+=1#обновляем счетчик
     end
-    return num_steps
+    return num_steps#возвращаем количество шагов
 end
-function moves1!(r::Robot,side::HorizonSide,num_steps::Int)
-    q=0
-    while q<num_steps 
-        if isborder(r,Nord)==true
-            while isborder(r,side)==true
-                move!(r,Ost)
-            end
-            move!(r,Nord)
-            q+=1
-            if isborder(r,West)==true
-                while isborder(r,West)==true
-                    move!(r,Nord)
-                    q+=1
-                end
-            end
-            move!(r,West)
-        end
-        if q<num_steps
-        move!(r,side)
-        q+=1
-        end
+
+function moves!(r::Robot,side::HorizonSide,num_steps::Int)# передвигаем робота по стороне side на num_steps
+    for _ in 1:num_steps#цикл от 1 ого до количества шагов
+        move!(r,side)#двигаем робота
     end
 end
-function moves!(r::Robot,side::HorizonSide,num_steps::Int)
-    for _ in 1:num_steps # символ "_" заменяет фактически не используемую переменную
-        move!(r,side)
+
+function putmarkers!(r::Robot, side::HorizonSide)#выставляем маркеры на поле
+    while !isborder(r,side)#пока не граница
+        putmarker!(r)#ставим маркер
+        move!(r,side)#двигаем робота
+    end
+    
+    putmarker!(r)#ставим маркер
+    if !isborder(r,Ost)#если не граница востока
+        move!(r,Ost)#двигаем на восток
+        return putmarkers!(r, inverse(side))#вызываем рекурентно функцию putmarkers в противоположную сторону
     end
 end
-function putmarkers!(r::Robot,side::HorizonSide,num_steps::Int)
-    q=0
-    while q<num_steps
-        k=0
-       putmarker!(r)
-       if isborder(r,side)==false
-            move!(r,side)
-            q+=1
-       else isborder(r,side)==true
-            while isborder(r,side)==true
-                move!(r,Nord)
-                k+=1
-            end
-            move!(r,side)
-            q+=1
-            if isborder(r,Sud)==true
-                move!(r,side)
-                q+=1
-            end
-            for _ in 1:k
-                move!(r,Sud)
-            end            
-       end
-    end
-    putmarker!(r)
-    move!(r,Nord)
-end
-function putmarkers_last!(r::Robot,side::HorizonSide)
-    while isborder(r,side)==false
-        putmarker!(r) 
-        move!(r,side)
-    end
-    putmarker!(r)
-end
-function ugol(r::Robot)
-    num_vert=0
-    num_hor=0
-    while (isborder(r,Sud)==false || isborder(r,West)==false)
-        num_vert+= moves!(r, Sud)
-        num_hor+= moves!(r, West)
-        repeat
-    end
-    return num_vert,num_hor
-end
-inverse(side::HorizonSide)=HorizonSide(mod(Int(side)+2,4))
+
+inverse(side::HorizonSide) = HorizonSide(mod(Int(side)+2, 4))#меняем сторону на противоположную
